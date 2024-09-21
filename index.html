@@ -58,15 +58,51 @@
       var buildUrl = "Build";
       var loaderUrl = buildUrl + "/Builds.loader.js";
       var config = {
-        dataUrl: buildUrl + "/Builds.data.br",
-        frameworkUrl: buildUrl + "/Builds.framework.js.br",
-        codeUrl: buildUrl + "/Builds.wasm.br",
+        dataUrl: buildUrl + "/Builds.data.gz",
+        frameworkUrl: buildUrl + "/Builds.framework.js.gz",
+        codeUrl: buildUrl + "/Builds.wasm.gz",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "ASL Aspire",
         productName: "ASL_Aspire_SSD",
         productVersion: "1.0",
         showBanner: unityShowBanner,
       };
+
+	  // Determine if Gzip is supported and update config URLs
+      function updateForGzipSupport() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('HEAD', buildUrl + "/Builds.loader.js.gz", true);
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState === 4 && xhr.status === 200) {
+            config.dataUrl += ".gz";
+            config.frameworkUrl += ".gz";
+            config.codeUrl += ".gz";
+            loadUnityScript();
+          } else {
+            loadUnityScript();
+          }
+        };
+        xhr.send();
+      }
+
+      // Load the Unity loader script
+      function loadUnityScript() {
+        var script = document.createElement("script");
+        script.src = config.frameworkUrl.replace(".gz", "") + ".loader.js";
+        script.onload = () => {
+          createUnityInstance(canvas, config, (progress) => {
+            progressBarFull.style.width = 100 * progress + "%";
+          }).then((unityInstance) => {
+            loadingBar.style.display = "none";
+            fullscreenButton.onclick = () => {
+              unityInstance.SetFullscreen(1);
+            };
+          }).catch((message) => {
+            alert(message);
+          });
+        };
+        document.body.appendChild(script);
+      }
 
       // By default Unity keeps WebGL canvas render target size matched with
       // the DOM size of the canvas element (scaled by window.devicePixelRatio)
@@ -99,21 +135,8 @@
 
       loadingBar.style.display = "block";
 
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          progressBarFull.style.width = 100 * progress + "%";
-        }).then((unityInstance) => {
-          loadingBar.style.display = "none";
-          fullscreenButton.onclick = () => {
-            unityInstance.SetFullscreen(1);
-          };
-        }).catch((message) => {
-          alert(message);
-        });
-      };
-      document.body.appendChild(script);
+	  // Call the function to check Gzip support and load the appropriate files
+      updateForGzipSupport();
     </script>
   </body>
 </html>
