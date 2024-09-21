@@ -65,7 +65,7 @@
       // Determine if Gzip is supported and update config URLs
       function updateForGzipSupport() {
         var xhr = new XMLHttpRequest();
-        xhr.open('HEAD', buildUrl + "/Builds.loader.js.gz", true);
+        xhr.open('HEAD', buildUrl + "/Builds.loader.js", true);
         xhr.onreadystatechange = function () {
           if (xhr.readyState === 4 && xhr.status === 200) {
             config.dataUrl += ".gz";
